@@ -24,10 +24,18 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	clientID := generateClientID()
 	client := &Client{
-		ID:   generateClientID(),
+		ID:   clientID,
 		Conn: conn,
 	}
+
+	// Send initial connection confirmation with client ID
+	conn.WriteJSON(Message{
+		Type:     "connected",
+		Body:     "",
+		ClientID: clientID,
+	})
 
 	// Add the client to the matchmaking queue
 	waitingClients <- client
@@ -37,6 +45,11 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupRoutes() {
+	// Serve static files from the frontend directory
+	fs := http.FileServer(http.Dir("frontend"))
+	http.Handle("/", fs)
+	
+	// WebSocket endpoint
 	http.HandleFunc("/ws", serveWs)
 }
 

@@ -11,6 +11,7 @@ type GameSession struct {
 	Players []*Client
 	Input   chan ClientInput
 	Game    Game
+	Active  bool
 }
 
 type ClientInput struct {
@@ -82,14 +83,20 @@ func (gs *GameSession) resetBall() {
 }
 
 func (gs *GameSession) sendGameState() {
-	gameStateMessage := Message{
-		Type: "gameState",
-		Body: gs.gameStateJSON(),
+	if !gs.Active {
+		return
 	}
+
+	gameStateMessage := Message{
+		Type:     "gameState",
+		Body:     gs.gameStateJSON(),
+		ClientID: "",
+	}
+
 	for _, player := range gs.Players {
+		gameStateMessage.ClientID = player.ID
 		if err := player.Conn.WriteJSON(gameStateMessage); err != nil {
 			log.Println("Error sending game state:", err)
-			// Handle error, possibly remove player from session
 		}
 	}
 }
@@ -104,17 +111,23 @@ func (gs *GameSession) gameStateJSON() string {
 }
 
 func (gs *GameSession) PlayerDisconnected(c *Client) {
-	// Notify the other player
+
+	gs.Active = false
+	// Notify remaining players
 	for _, player := range gs.Players {
-		if player.ID != c.ID {
+		if player != nil && player.ID != c.ID {
 			disconnectMessage := Message{
-				Type: "playerDisconnected",
-				Body: "",
+				Type:     "playerDisconnected",
+				Body:     "",
+				ClientID: player.ID,
 			}
 			player.Conn.WriteJSON(disconnectMessage)
+			// Clear their game session reference
+			player.GameSession = nil
 		}
 	}
-	// Clean up the session
+
+	// Remove the session from the manager
 	delete(sessionManager.Sessions, gs.ID)
 	log.Printf("Game session %s ended due to player disconnect", gs.ID)
 }

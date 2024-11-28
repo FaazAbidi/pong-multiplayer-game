@@ -22,6 +22,12 @@ func handleMatchmaking() {
 		// Get two clients from the waiting queue
 		client1 := <-waitingClients
 		log.Printf("Client %s is waiting for a match", client1.ID)
+		client1.Conn.WriteJSON(Message{
+			Type:     "waitingForMatch",
+			Body:     "",
+			ClientID: client1.ID,
+		})
+
 		client2 := <-waitingClients
 		log.Printf("Client %s is matched with client %s", client2.ID, client1.ID)
 
@@ -32,6 +38,7 @@ func handleMatchmaking() {
 			Players: []*Client{client1, client2},
 			Input:   make(chan ClientInput, 100),
 			Game:    initialGameState(),
+			Active:  true,
 		}
 
 		// Assign the game session to the clients
@@ -41,13 +48,15 @@ func handleMatchmaking() {
 		// Add session to the session manager
 		sessionManager.Sessions[sessionID] = gameSession
 
-		// Notify clients that the game is starting
-		startMessage := Message{
-			Type: "gameStart",
-			Body: "",
+		// Send start messages with client IDs
+		for _, player := range gameSession.Players {
+			startMessage := Message{
+				Type:     "gameStart",
+				Body:     "",
+				ClientID: player.ID,
+			}
+			player.Conn.WriteJSON(startMessage)
 		}
-		client1.Conn.WriteJSON(startMessage)
-		client2.Conn.WriteJSON(startMessage)
 
 		// Start the game session
 		go gameSession.Start()

@@ -34,7 +34,19 @@ func (c *Client) Read() {
 			continue
 		}
 
-		// Send the message to the game session
+		// Handle findMatch message type
+		if message.Type == "findMatch" {
+			// Remove from current game session if exists
+			if c.GameSession != nil {
+				c.GameSession.PlayerDisconnected(c)
+				c.GameSession = nil
+			}
+			// Add back to waiting queue
+			waitingClients <- c
+			continue
+		}
+
+		// Send other messages to game session
 		if c.GameSession != nil {
 			c.GameSession.Input <- ClientInput{
 				ClientID: c.ID,
