@@ -20,7 +20,7 @@ type ClientInput struct {
 }
 
 func (gs *GameSession) Start() {
-	ticker := time.NewTicker(8 * time.Millisecond) // Approximately 60 updates per second
+	ticker := time.NewTicker(16 * time.Millisecond) // Approximately 30 updates per second
 	defer ticker.Stop()
 
 	for {
@@ -35,6 +35,28 @@ func (gs *GameSession) Start() {
 }
 
 func (gs *GameSession) processInput(input ClientInput) {
+	if input.Message.Type == "ping" {
+		// Send ping response
+		var data map[string]float64
+		if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
+			return
+		}
+		
+		response := Message{
+			Type: "pong",
+			Body: input.Message.Body,
+			ClientID: input.ClientID,
+		}
+		
+		for _, player := range gs.Players {
+			if player.ID == input.ClientID {
+				player.Conn.WriteJSON(response)
+				break
+			}
+		}
+		return
+	}
+	
 	var data map[string]float64
 	if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
 		log.Println("Error unmarshalling input data:", err)

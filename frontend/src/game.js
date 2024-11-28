@@ -2,7 +2,8 @@ import { wsService } from './services/websocket.js';
 import { gameState } from './state/gameState.js';
 import { GameRenderer } from './renderer/gameRenderer.js';
 import { PaddleController } from './input/paddleController.js';
-import { toast } from './components/toast.js';
+import { toast } from './components/customToast.js';
+import { performanceMonitor } from './monitoring/performanceMonitor.js'
 
 class Game {
     constructor() {
@@ -47,8 +48,22 @@ class Game {
             requestAnimationFrame(animate);
             const state = gameState.getState();
             this.renderer.draw(state.gameState);
+            performanceMonitor.calculateFPS();
         };
         animate();
+        
+        // Start ping measurement
+        this.startPingMeasurement();
+    }
+
+    startPingMeasurement() {
+        setInterval(() => {
+            const startTime = performance.now();
+            wsService.send({
+                type: "ping",
+                body: JSON.stringify({ timestamp: startTime })
+            });
+        }, 1000);
     }
 
     findNewMatch() {

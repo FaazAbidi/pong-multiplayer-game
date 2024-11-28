@@ -15,8 +15,8 @@ func initialGameState() Game {
 	return Game{
 		BallX:    0.5,
 		BallY:    0.5,
-		BallVX:   0.0025,
-		BallVY:   0.0025,
+		BallVX:   0.005,
+		BallVY:   0.005,
 		Paddle1Y: 0.5,
 		Paddle2Y: 0.5,
 		Score1:   0,

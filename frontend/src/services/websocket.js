@@ -1,13 +1,28 @@
+import { performanceMonitor } from '../monitoring/performanceMonitor.js';
+import { toast } from '../components/customToast.js';
+
 class WebSocketService {
     constructor(url) {
         this.ws = new WebSocket(url);
         this.messageHandlers = new Map();
         this.setupWebSocket();
+        this.lastInputTime = 0;
     } 
 
     setupWebSocket() {
         this.ws.onopen = () => toast.show("Connected to server", "success");
-        this.ws.onmessage = (event) => this.handleMessage(event);
+        this.ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            
+            // Handle pong messages for latency calculation
+            if (message.type === "pong") {
+                const data = JSON.parse(message.body);
+                const latency = performance.now() - data.timestamp;
+                performanceMonitor.updateMetrics({ ping: Math.round(latency) });
+            }
+            
+            this.handleMessage(event);
+        };
         this.ws.onclose = () => {
             console.log("Disconnected from server");
             toast.show("Disconnected from server", "error");
@@ -29,6 +44,11 @@ class WebSocketService {
 
     send(message) {
         if (this.ws.readyState === WebSocket.OPEN) {
+            if (message.type === "movePaddle") {
+                const inputLatency = performance.now() - this.lastInputTime;
+                performanceMonitor.updateMetrics({ inputLatency: Math.round(inputLatency) });
+                this.lastInputTime = performance.now();
+            }
             this.ws.send(JSON.stringify(message));
         }
     }

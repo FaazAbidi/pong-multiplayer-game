@@ -7,7 +7,7 @@ export class PaddleController {
 
     setupMouseControl() {
         let lastSentTime = 0;
-        const minTimeBetweenUpdates = 8; // ~60fps
+        const minTimeBetweenUpdates = 16; // ~60fps
 
         this.canvas.addEventListener("mousemove", (event) => {
             const currentTime = Date.now();
