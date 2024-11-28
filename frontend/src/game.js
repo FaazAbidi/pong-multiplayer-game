@@ -2,7 +2,7 @@ import { wsService } from './services/websocket.js';
 import { gameState } from './state/gameState.js';
 import { GameRenderer } from './renderer/gameRenderer.js';
 import { PaddleController } from './input/paddleController.js';
-import { toast } from './components/Toast.js';
+import { toast } from './components/toast.js';
 
 class Game {
     constructor() {

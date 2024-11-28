@@ -1,5 +1,3 @@
-import { toast } from '../components/Toast.js';
-
 class WebSocketService {
     constructor(url) {
         this.ws = new WebSocket(url);
