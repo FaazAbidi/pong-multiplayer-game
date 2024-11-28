@@ -1,3 +1,5 @@
+import { toast } from '../components/Toast.js';
+
 class WebSocketService {
     constructor(url) {
         this.ws = new WebSocket(url);
@@ -6,11 +8,11 @@ class WebSocketService {
     } 
 
     setupWebSocket() {
-        this.ws.onopen = () => console.log("Connected to server");
+        this.ws.onopen = () => toast.show("Connected to server", "success");
         this.ws.onmessage = (event) => this.handleMessage(event);
         this.ws.onclose = () => {
             console.log("Disconnected from server");
-            alert("Disconnected from server");
+            toast.show("Disconnected from server", "error");
         };
     }
 

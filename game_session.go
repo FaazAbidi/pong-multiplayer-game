@@ -20,7 +20,7 @@ type ClientInput struct {
 }
 
 func (gs *GameSession) Start() {
-	ticker := time.NewTicker(16 * time.Millisecond) // Approximately 60 updates per second
+	ticker := time.NewTicker(8 * time.Millisecond) // Approximately 60 updates per second
 	defer ticker.Stop()
 
 	for {
@@ -60,9 +60,9 @@ func (gs *GameSession) updateGameState() {
 	}
 
 	// Check for collisions with paddles (simplified)
-	if gs.Game.BallX <= 0.05 && gs.Game.BallY >= gs.Game.Paddle1Y-0.1 && gs.Game.BallY <= gs.Game.Paddle1Y+0.1 {
+	if gs.Game.BallX <= 0.03 && gs.Game.BallY >= gs.Game.Paddle1Y-0.05 && gs.Game.BallY <= gs.Game.Paddle1Y+0.2 {
 		gs.Game.BallVX *= -1
-	} else if gs.Game.BallX >= 0.95 && gs.Game.BallY >= gs.Game.Paddle2Y-0.1 && gs.Game.BallY <= gs.Game.Paddle2Y+0.1 {
+	} else if gs.Game.BallX >= 0.97 && gs.Game.BallY >= gs.Game.Paddle2Y-0.05 && gs.Game.BallY <= gs.Game.Paddle2Y+0.2 {
 		gs.Game.BallVX *= -1
 	}
 

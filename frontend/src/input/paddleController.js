@@ -7,7 +7,7 @@ export class PaddleController {
 
     setupMouseControl() {
         let lastSentTime = 0;
-        const minTimeBetweenUpdates = 16; // ~60fps
+        const minTimeBetweenUpdates = 8; // ~60fps
 
         this.canvas.addEventListener("mousemove", (event) => {
             const currentTime = Date.now();
@@ -19,7 +19,6 @@ export class PaddleController {
                 this.canvas.height - 100,
                 mouseY - 50
             ));
-
             this.wsService.send({
                 type: "movePaddle",
                 body: JSON.stringify({ position: paddleY / this.canvas.height })

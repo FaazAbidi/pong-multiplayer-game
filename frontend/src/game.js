@@ -2,6 +2,7 @@ import { wsService } from './services/websocket.js';
 import { gameState } from './state/gameState.js';
 import { GameRenderer } from './renderer/gameRenderer.js';
 import { PaddleController } from './input/paddleController.js';
+import { toast } from './components/Toast.js';
 
 class Game {
     constructor() {
@@ -14,7 +15,7 @@ class Game {
         this.startGameLoop();
     }
 
-setupMessageHandlers() {
+    setupMessageHandlers() {
         wsService.addMessageHandler("connected", (msg) => {
             gameState.setState({ clientID: msg.clientID });
         });
@@ -24,18 +25,16 @@ setupMessageHandlers() {
         });
 
         wsService.addMessageHandler("playerDisconnected", () => {
-            console.log("Player disconnected");
-            if (confirm("The other player has disconnected. Find new match?")) {
-                this.findNewMatch();
-            }
+            toast.show("The other player has disconnected", "warning");
+            this.findNewMatch();
         });
 
         wsService.addMessageHandler("gameStart", () => {
-            console.log("Game started");
+            toast.show("Game started", "success");
         });
 
         wsService.addMessageHandler("waitingForMatch", () => {
-            console.log("Waiting for match");
+            toast.show("Waiting for match. Finding an opponent...", "info");
         });
     }
 
