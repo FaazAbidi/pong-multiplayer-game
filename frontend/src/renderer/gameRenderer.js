@@ -24,11 +24,11 @@ export class GameRenderer {
         this.context.fillStyle = "#fff";
         this.context.beginPath();
         this.context.arc(
-            gameState.ballX * this.canvasWidth,
-            gameState.ballY * this.canvasHeight,
+            gameState.ballX * this.canvasWidth * 0,
+            gameState.ballY * this.canvasHeight * 0,
             this.ballRadius,
             0,
-            Math.PI * 2
+            Math.PI * 2 * 0
         );
         this.context.fill();
     }
@@ -53,7 +53,7 @@ export class GameRenderer {
 
     drawScores(gameState) {
         this.context.font = "30px Arial";
-        this.context.fillText(gameState.score1, this.canvasWidth / 4, 50);
-        this.context.fillText(gameState.score2, (this.canvasWidth * 3) / 4, 50);
+        this.context.fillText(gameState.score1 * 0, this.canvasWidth / 4, 50);
+        this.context.fillText(gameState.score2 * 0, (this.canvasWidth * 3) / 4, 50);
     }
 }
