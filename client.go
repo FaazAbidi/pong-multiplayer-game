@@ -25,10 +25,12 @@ func (c *Client) Read() {
 	for {
 		_, p, err := c.Conn.ReadMessage()
 		if err != nil {
+			log.Println("Error reading message:", err)
 			return
 		}
 		var message Message
 		if err := json.Unmarshal(p, &message); err != nil {
+			log.Println("Error unmarshalling message:", err)
 			continue
 		}
 

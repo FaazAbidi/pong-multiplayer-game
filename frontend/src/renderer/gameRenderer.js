@@ -56,10 +56,4 @@ export class GameRenderer {
         this.context.fillText(gameState.score1, this.canvasWidth / 4, 50);
         this.context.fillText(gameState.score2, (this.canvasWidth * 3) / 4, 50);
     }
-
-
-
-
-
-    
 }

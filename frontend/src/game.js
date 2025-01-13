@@ -72,9 +72,6 @@ class Game {
             body: ""
         });
     }
-
-
-    
 }
 
 // Start the game when the DOM is loaded

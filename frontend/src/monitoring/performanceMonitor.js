@@ -53,11 +53,6 @@ export class PerformanceMonitor {
             Input Latency: ${this.metrics.inputLatency}ms
         `;
     }
-
-
-
-
-    
 }
 
 export const performanceMonitor = new PerformanceMonitor();
