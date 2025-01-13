@@ -28,6 +28,12 @@ class GameState {
     notifyListeners() {
         this.listeners.forEach(listener => listener(this.state));
     }
+
+
+
+
+
+    
 }
 
 export const gameState = new GameState();

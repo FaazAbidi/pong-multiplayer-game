@@ -59,7 +59,6 @@ func (gs *GameSession) processInput(input ClientInput) {
 	
 	var data map[string]float64
 	if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
-		log.Println("Error unmarshalling input data:", err)
 		return
 	}
 	if input.Message.Type == "movePaddle" {

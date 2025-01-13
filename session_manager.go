@@ -21,7 +21,6 @@ func handleMatchmaking() {
 	for {
 		// Get two clients from the waiting queue
 		client1 := <-waitingClients
-		log.Printf("Client %s is waiting for a match", client1.ID)
 		client1.Conn.WriteJSON(Message{
 			Type:     "waitingForMatch",
 			Body:     "",
@@ -29,7 +28,6 @@ func handleMatchmaking() {
 		})
 
 		client2 := <-waitingClients
-		log.Printf("Client %s is matched with client %s", client2.ID, client1.ID)
 
 		// Create a new game session
 		sessionID := generateSessionID()

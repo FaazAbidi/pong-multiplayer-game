@@ -20,7 +20,6 @@ var upgrader = websocket.Upgrader{
 func serveWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 
@@ -54,11 +53,9 @@ func setupRoutes() {
 }
 
 func main() {
-	fmt.Println("Server started on :8080")
 
 	// Start the matchmaking goroutine
 	go handleMatchmaking()
 
 	setupRoutes()
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }
