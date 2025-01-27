@@ -20,16 +20,24 @@ export class GameRenderer {
         }
     }
 
-    draw(gameState) {
+    draw(gameState, isPaused, pauseDueToMe) {
         if (!gameState) {
             this.drawWaitingMessage();
             return;
         }
 
+        
+
         this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
         this.drawBall(gameState);
         this.drawPaddles(gameState);
         this.drawScores(gameState);
+
+
+        if (isPaused) {
+            this.drawPauseMessage(pauseDueToMe);
+        }
+    
     }
 
     drawBall(gameState) {
@@ -86,6 +94,17 @@ export class GameRenderer {
         this.context.textAlign = "center";
         this.context.fillText(
             "Waiting for another player...",
+            this.canvasWidth / 2,
+            this.canvasHeight / 2
+        );
+    }
+
+    drawPauseMessage(pauseDueToMe) {
+        this.context.fillStyle = "#fff";
+        this.context.font = "20px Arial";
+        this.context.textAlign = "center";
+        this.context.fillText(
+            pauseDueToMe ? "Game is paused due to your connection issues.\nPlease check your connection." : "Game is paused due to other player's connection issues.\nAttemtping to reconnect...",
             this.canvasWidth / 2,
             this.canvasHeight / 2
         );

@@ -58,7 +58,7 @@ class Game {
         const animate = () => {
             requestAnimationFrame(animate);
             const state = gameState.getState();
-            this.renderer.draw(state.gameState);
+            this.renderer.draw(state.gameState, state.isPaused, state.connectionStatus === 'high-ping');
             this.renderer.updateUsernames(state.gameState);
             performanceMonitor.calculateFPS();
         };
