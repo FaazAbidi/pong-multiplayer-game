@@ -3,7 +3,9 @@ class GameState {
         this.state = {
             gameState: null,
             clientID: null,
-            playerNumber: null
+            playerNumber: null,
+            player1Username: null,
+            player2Username: null,
         };
         this.listeners = new Set();
     }

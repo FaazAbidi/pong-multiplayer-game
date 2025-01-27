@@ -2,16 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
 
 type GameSession struct {
-	ID      string
-	Players []*Client
-	Input   chan ClientInput
-	Game    Game
-	Active  bool
+	ID           string
+	Players      []*Client
+	Input        chan ClientInput
+	Game         Game
+	Active       bool
+	lastTickTime time.Time
 }
 
 type ClientInput struct {
@@ -41,13 +43,13 @@ func (gs *GameSession) processInput(input ClientInput) {
 		if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
 			return
 		}
-		
+
 		response := Message{
-			Type: "pong",
-			Body: input.Message.Body,
+			Type:     "pong",
+			Body:     input.Message.Body,
 			ClientID: input.ClientID,
 		}
-		
+
 		for _, player := range gs.Players {
 			if player.ID == input.ClientID {
 				player.Conn.WriteJSON(response)
@@ -56,7 +58,7 @@ func (gs *GameSession) processInput(input ClientInput) {
 		}
 		return
 	}
-	
+
 	var data map[string]float64
 	if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
 		log.Println("Error unmarshalling input data:", err)
@@ -109,13 +111,31 @@ func (gs *GameSession) sendGameState() {
 		return
 	}
 
+	// Calculate server tick time
+	now := time.Now()
+	serverTick := now.Sub(gs.lastTickTime).Milliseconds()
+	gs.lastTickTime = now
+
+	gs.Game.Player1Username = gs.Players[0].Username
+	gs.Game.Player2Username = gs.Players[1].Username
+
+	stateJson := gs.gameStateJSON()
+
 	gameStateMessage := Message{
 		Type:     "gameState",
-		Body:     gs.gameStateJSON(),
+		Body:     stateJson,
 		ClientID: "",
 	}
 
+	// Include server tick in the message
 	for _, player := range gs.Players {
+		tickMessage := Message{
+			Type:     "serverTick",
+			Body:     fmt.Sprintf(`{"tick":%d}`, serverTick),
+			ClientID: player.ID,
+		}
+		player.Conn.WriteJSON(tickMessage)
+
 		gameStateMessage.ClientID = player.ID
 		if err := player.Conn.WriteJSON(gameStateMessage); err != nil {
 			log.Println("Error sending game state:", err)

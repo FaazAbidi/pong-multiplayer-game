@@ -7,6 +7,7 @@ class WebSocketService {
         this.messageHandlers = new Map();
         this.setupWebSocket();
         this.lastInputTime = 0;
+        this.username = null;
     } 
 
     setupWebSocket() {
@@ -17,11 +18,20 @@ class WebSocketService {
             // Handle pong messages for latency calculation
             if (message.type === "pong") {
                 const data = JSON.parse(message.body);
-                const latency = performance.now() - data.timestamp;
+                const now = performance.now();
+                const latency = now - data.timestamp;
                 performanceMonitor.updateMetrics({ ping: Math.round(latency) });
+                return;
             }
             
-            this.handleMessage(event);
+            // Handle server tick messages
+            if (message.type === "serverTick") {
+                const data = JSON.parse(message.body);
+                performanceMonitor.updateMetrics({ serverTick: data.tick });
+                return;
+            }
+            
+            this.handleMessage(message);
         };
         this.ws.onclose = () => {
             console.log("Disconnected from server");
@@ -29,11 +39,11 @@ class WebSocketService {
         };
     }
 
-    handleMessage(event) {
-        const message = JSON.parse(event.data);
+    handleMessage(message) {
         if (this.messageHandlers.has(message.type)) {
             this.messageHandlers.get(message.type)(message);
         } else {
+            console.log("testing")
             console.log("Unknown message type:", message.type);
         }
     }
@@ -49,6 +59,7 @@ class WebSocketService {
                 performanceMonitor.updateMetrics({ inputLatency: Math.round(inputLatency) });
                 this.lastInputTime = performance.now();
             }
+            message.username = this.username;
             this.ws.send(JSON.stringify(message));
         }
     }

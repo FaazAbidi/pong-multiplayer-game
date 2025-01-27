@@ -31,7 +31,7 @@ func serveWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send initial connection confirmation with client ID
-	conn.WriteJSON(Message{
+	client.SendMessage(Message{
 		Type:     "connected",
 		Body:     "",
 		ClientID: clientID,
