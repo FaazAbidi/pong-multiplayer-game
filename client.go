@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -12,6 +13,8 @@ type Client struct {
 	Conn        *websocket.Conn
 	GameSession *GameSession
 	LastStatus  string
+	Username    string
+	WriteMutex  sync.Mutex
 }
 
 func (c *Client) Read() {
@@ -47,6 +50,12 @@ func (c *Client) Read() {
 			continue
 		}
 
+		// Handle setUsername message type
+		if message.Type == "setUsername" {
+			c.Username = message.Body
+			continue
+		}
+
 		// Send other messages to game session
 		if c.GameSession != nil {
 			c.GameSession.Input <- ClientInput{
@@ -57,4 +66,10 @@ func (c *Client) Read() {
 			log.Println("Client has no game session")
 		}
 	}
+}
+
+func (c *Client) SendMessage(msg Message) error {
+	c.WriteMutex.Lock()
+	defer c.WriteMutex.Unlock()
+	return c.Conn.WriteJSON(msg)
 }

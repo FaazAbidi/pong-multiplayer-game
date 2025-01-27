@@ -53,6 +53,7 @@ export class PerformanceMonitor {
             this.metrics.fps = Math.round(this.frameCount * 1000 / (currentTime - this.lastFpsUpdate));
             this.frameCount = 0;
             this.lastFpsUpdate = currentTime;
+            this.updateDisplay();
         }
     }
 

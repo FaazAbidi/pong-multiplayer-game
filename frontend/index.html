@@ -7,7 +7,11 @@
 </head>
 <body>
     <h1>Multiplayer Pong Game</h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="game-container">
+        <div id="player1Username" class="username"></div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="player2Username" class="username"></div>
+    </div>
 
     <script type="module" src="src/game.js"></script>
 </body>

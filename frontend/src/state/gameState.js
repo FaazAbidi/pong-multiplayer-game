@@ -6,7 +6,9 @@ class GameState {
             playerNumber: null,
             isPaused: false,
             isReconnecting: false,
-            connectionStatus: 'connected'
+            connectionStatus: 'connected',
+            player1Username: null,
+            player2Username: null,
         };
         this.listeners = new Set();
     }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 )
 
 var waitingClients = make(chan *Client, 100)
@@ -22,7 +23,7 @@ func handleMatchmaking() {
 		// Get two clients from the waiting queue
 		client1 := <-waitingClients
 		log.Printf("Client %s is waiting for a match", client1.ID)
-		client1.Conn.WriteJSON(Message{
+		client1.SendMessage(Message{
 			Type:     "waitingForMatch",
 			Body:     "",
 			ClientID: client1.ID,
@@ -34,11 +35,12 @@ func handleMatchmaking() {
 		// Create a new game session
 		sessionID := generateSessionID()
 		gameSession := &GameSession{
-			ID:      sessionID,
-			Players: []*Client{client1, client2},
-			Input:   make(chan ClientInput, 100),
-			Game:    initialGameState(),
-			Active:  true,
+			ID:           sessionID,
+			Players:      []*Client{client1, client2},
+			Input:        make(chan ClientInput, 100),
+			Game:         initialGameState(client1, client2),
+			Active:       true,
+			lastTickTime: time.Now(),
 		}
 
 		// Assign the game session to the clients
@@ -55,7 +57,7 @@ func handleMatchmaking() {
 				Body:     "",
 				ClientID: player.ID,
 			}
-			player.Conn.WriteJSON(startMessage)
+			player.SendMessage(startMessage)
 		}
 
 		// Start the game session

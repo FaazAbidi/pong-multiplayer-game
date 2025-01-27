@@ -7,6 +7,12 @@ import { performanceMonitor } from './monitoring/performanceMonitor.js'
 
 class Game {
     constructor() {
+        // Prompt for username
+        this.username = null;
+        while (!this.username || this.username.trim() === "") {
+            this.username = prompt("Please enter your username:");
+        }
+
         this.canvas = document.getElementById("gameCanvas");
         this.renderer = new GameRenderer(this.canvas);
         this.paddleController = new PaddleController(this.canvas, wsService);
@@ -19,6 +25,11 @@ class Game {
     setupMessageHandlers() {
         wsService.addMessageHandler("connected", (msg) => {
             gameState.setState({ clientID: msg.clientID });
+            // Send username after connection is confirmed
+            wsService.send({
+                type: "setUsername",
+                body: this.username
+            });
         });
 
         wsService.addMessageHandler("gameState", (msg) => {
@@ -48,6 +59,7 @@ class Game {
             requestAnimationFrame(animate);
             const state = gameState.getState();
             this.renderer.draw(state.gameState);
+            this.renderer.updateUsernames(state.gameState);
             performanceMonitor.calculateFPS();
         };
         animate();

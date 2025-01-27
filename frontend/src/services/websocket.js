@@ -12,6 +12,7 @@ class WebSocketService {
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 1000; // Start with 1 second delay
         this.lastPingStatus = 'connected';
+        this.username = null;
         this.setupPerformanceMonitoring();
         this.connect();
     }
@@ -35,6 +36,8 @@ class WebSocketService {
         this.ws = new WebSocket(this.url);
         this.setupWebSocket();
     }
+        
+
 
     setupWebSocket() {
         this.ws.onopen = () => {
@@ -49,7 +52,8 @@ class WebSocketService {
             
             if (message.type === "pong") {
                 const data = JSON.parse(message.body);
-                const latency = performance.now() - data.timestamp;
+                const now = performance.now();
+                const latency = now - data.timestamp;
                 performanceMonitor.updateMetrics({ ping: Math.round(latency) });
             } else if (message.type === "gameStatus") {
                 // Handle game status updates from server
@@ -61,9 +65,17 @@ class WebSocketService {
                     gameState.resumeGame();
                     toast.show("Game resumed: Connection stable", "success");
                 }
+                return;
             }
             
-            this.handleMessage(event);
+            // Handle server tick messages
+            if (message.type === "serverTick") {
+                const data = JSON.parse(message.body);
+                performanceMonitor.updateMetrics({ serverTick: data.tick });
+                return;
+            }
+            
+            this.handleMessage(message);
         };
 
         this.ws.onclose = () => {
@@ -107,11 +119,11 @@ class WebSocketService {
         }
     }
 
-    handleMessage(event) {
-        const message = JSON.parse(event.data);
+    handleMessage(message) {
         if (this.messageHandlers.has(message.type)) {
             this.messageHandlers.get(message.type)(message);
         } else {
+            console.log("testing")
             console.log("Unknown message type:", message.type);
         }
     }
@@ -127,6 +139,7 @@ class WebSocketService {
                 performanceMonitor.updateMetrics({ inputLatency: Math.round(inputLatency) });
                 this.lastInputTime = performance.now();
             }
+            message.username = this.username;
             this.ws.send(JSON.stringify(message));
         }
     }
