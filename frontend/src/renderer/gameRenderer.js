@@ -21,7 +21,6 @@ export class GameRenderer {
     }
 
     draw(gameState) {
-        console.log(gameState);
         if (!gameState) {
             this.drawWaitingMessage();
             return;
