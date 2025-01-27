@@ -79,7 +79,6 @@ class WebSocketService {
         };
 
         this.ws.onclose = () => {
-            console.log("Disconnected from server");
             toast.show("Disconnected from server", "error");
             this.attemptReconnect();
         };
@@ -123,7 +122,6 @@ class WebSocketService {
         if (this.messageHandlers.has(message.type)) {
             this.messageHandlers.get(message.type)(message);
         } else {
-            console.log("testing")
             console.log("Unknown message type:", message.type);
         }
     }
