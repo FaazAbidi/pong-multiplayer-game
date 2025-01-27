@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
+	"log"
 )
 
 func generateClientID() string {
@@ -20,4 +22,13 @@ func generateRandomID() string {
 		return ""
 	}
 	return hex.EncodeToString(b)
+}
+
+func mustJSON(v interface{}) []byte {
+	data, err := json.Marshal(v)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %v", err)
+		return []byte("{}")
+	}
+	return data
 }

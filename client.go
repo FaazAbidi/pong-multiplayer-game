@@ -11,6 +11,7 @@ type Client struct {
 	ID          string
 	Conn        *websocket.Conn
 	GameSession *GameSession
+	LastStatus  string
 }
 
 func (c *Client) Read() {

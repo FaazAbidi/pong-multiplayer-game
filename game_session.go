@@ -12,6 +12,7 @@ type GameSession struct {
 	Input   chan ClientInput
 	Game    Game
 	Active  bool
+	Paused  bool
 }
 
 type ClientInput struct {
@@ -41,13 +42,13 @@ func (gs *GameSession) processInput(input ClientInput) {
 		if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
 			return
 		}
-		
+
 		response := Message{
-			Type: "pong",
-			Body: input.Message.Body,
+			Type:     "pong",
+			Body:     input.Message.Body,
 			ClientID: input.ClientID,
 		}
-		
+
 		for _, player := range gs.Players {
 			if player.ID == input.ClientID {
 				player.Conn.WriteJSON(response)
@@ -56,22 +57,78 @@ func (gs *GameSession) processInput(input ClientInput) {
 		}
 		return
 	}
-	
-	var data map[string]float64
-	if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
-		log.Println("Error unmarshalling input data:", err)
+
+	if input.Message.Type == "connectionStatus" {
+		var data map[string]string
+		if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
+			log.Println("Error unmarshalling connection status:", err)
+			return
+		}
+
+		status := data["status"]
+		if status == "high-ping" {
+			// Pause the game for all clients
+			gs.Paused = true
+			gs.broadcastGameStatus("paused")
+		} else if status == "connected" {
+			// Check if all players have good connection before resuming
+			allConnected := true
+			for _, player := range gs.Players {
+				if player.ID != input.ClientID && player.LastStatus == "high-ping" {
+					allConnected = false
+					break
+				}
+			}
+
+			// Update the player's status
+			for _, player := range gs.Players {
+				if player.ID == input.ClientID {
+					player.LastStatus = status
+					break
+				}
+			}
+
+			if allConnected {
+				gs.Paused = false
+				gs.broadcastGameStatus("resumed")
+			}
+		}
 		return
 	}
-	if input.Message.Type == "movePaddle" {
-		if input.ClientID == gs.Players[0].ID {
-			gs.Game.Paddle1Y = data["position"]
-		} else if input.ClientID == gs.Players[1].ID {
-			gs.Game.Paddle2Y = data["position"]
+
+	// Only process game inputs if not paused
+	if !gs.Paused {
+		var data map[string]float64
+		if err := json.Unmarshal([]byte(input.Message.Body), &data); err != nil {
+			log.Println("Error unmarshalling input data:", err)
+			return
+		}
+		if input.Message.Type == "movePaddle" {
+			if input.ClientID == gs.Players[0].ID {
+				gs.Game.Paddle1Y = data["position"]
+			} else if input.ClientID == gs.Players[1].ID {
+				gs.Game.Paddle2Y = data["position"]
+			}
 		}
 	}
 }
 
+func (gs *GameSession) broadcastGameStatus(status string) {
+	statusMsg := Message{
+		Type: "gameStatus",
+		Body: string(mustJSON(map[string]string{"status": status})),
+	}
+
+	for _, player := range gs.Players {
+		player.Conn.WriteJSON(statusMsg)
+	}
+}
+
 func (gs *GameSession) updateGameState() {
+	if gs.Paused {
+		return // Don't update game state while paused
+	}
+
 	// Update ball position
 	gs.Game.BallX += gs.Game.BallVX
 	gs.Game.BallY += gs.Game.BallVY

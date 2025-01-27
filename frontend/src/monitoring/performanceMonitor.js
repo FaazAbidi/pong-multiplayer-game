@@ -5,11 +5,14 @@ export class PerformanceMonitor {
             fps: 0,
             ping: 0,
             serverTick: 0,
-            inputLatency: 0
+            inputLatency: 0,
+            connectionStatus: 'connected'
         };
         this.lastFrameTime = performance.now();
         this.frameCount = 0;
         this.lastFpsUpdate = performance.now();
+        this.PING_THRESHOLD = 300; // 300ms threshold for high ping
+        this.connectionListeners = new Set();
     }
 
     createMonitorElement() {
@@ -31,6 +34,14 @@ export class PerformanceMonitor {
 
     updateMetrics(newMetrics) {
         this.metrics = { ...this.metrics, ...newMetrics };
+        
+        // Check ping threshold
+        if (newMetrics.ping && newMetrics.ping > this.PING_THRESHOLD) {
+            this.notifyConnectionIssue('high-ping');
+        } else if (newMetrics.ping && newMetrics.ping <= this.PING_THRESHOLD) {
+            this.notifyConnectionIssue('connected');
+        }
+        
         this.updateDisplay();
     }
 
@@ -45,13 +56,32 @@ export class PerformanceMonitor {
         }
     }
 
+    addConnectionListener(listener) {
+        this.connectionListeners.add(listener);
+    }
+
+    removeConnectionListener(listener) {
+        this.connectionListeners.delete(listener);
+    }
+
+    notifyConnectionIssue(status) {
+        if (this.metrics.connectionStatus !== status) {
+            this.metrics.connectionStatus = status;
+            this.connectionListeners.forEach(listener => listener(status));
+        }
+    }
+
     updateDisplay() {
         this.element.innerHTML = `
             FPS: ${this.metrics.fps}<br>
             Ping: ${this.metrics.ping}ms<br>
             Server Tick: ${this.metrics.serverTick}ms<br>
-            Input Latency: ${this.metrics.inputLatency}ms
+            Input Latency: ${this.metrics.inputLatency}ms<br>
+            Status: ${this.metrics.connectionStatus}
         `;
+        
+        // Update status color
+        this.element.style.color = this.metrics.connectionStatus === 'connected' ? '#00ff00' : '#ff0000';
     }
 }
 
